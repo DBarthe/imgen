@@ -1,9 +1,10 @@
 
-var intervalId;
+var timeoutId;
 
 var modelCanvas, genCanvas;
-var modelContext, genContext;
+var modelCtx, genCtx;
 var modelImage;
+var modelImageData;
 
 var imageWidth;
 var imageHeight;
@@ -14,26 +15,36 @@ function initialize()
 {
   modelCanvas = document.getElementById('model-canvas');
   genCanvas = document.getElementById('generate-canvas');
-  modelContext = modelCanvas.getContext('2d');
-  genContext = genCanvas.getContext('2d');
+
+  modelCtx = modelCanvas.getContext('2d');
+  genCtx = genCanvas.getContext('2d');
 
   modelImage = new Image();
-  modelImage.src = './darth-vader.jpg';
   modelImage.onload = function() {
     imageWidth = modelImage.width;
     imageHeight = modelImage.height;
+
     modelCanvas.width = modelImage.width;
     modelCanvas.height = modelImage.height;
+    modelCtx.drawImage(modelImage, 0, 0)
+    modelImageData = modelCtx.getImageData(0, 0, imageWidth, imageHeight);
+
     genCanvas.width = modelImage.width;
     genCanvas.height = modelImage.height;
-    modelContext.drawImage(modelImage, 0, 0)
-    intervalId = setInterval(generateOnce, 0);
+    genCtx.beginPath();
+    genCtx.rect(0, 0, imageWidth, imageHeight);
+    genCtx.fillStyle = 'white';
+    genCtx.fill();
+
+    timeoutId = setTimeout(generateOnce, 0);
   }
+  modelImage.src = './firefox.png';
+
 }
 
 function getPixel(data, x, y)
 {
-  var start_index = y * data.width * 4 + x * 4;
+  var start_index = (y * imageWidth + x) * 4;
   var r = data[start_index];
   var g = data[start_index + 1];
   var b = data[start_index + 2];
@@ -52,12 +63,15 @@ function pixelDiff(p1, p2)
 function imageDiff(imageData1, imageData2)
 {
   var totalDiff = 0;
-  for (var y = 0; y < imageData1.width; y++)
+  for (var y = 0; y < imageData1.height; y++)
   {
-    for (var x = 0; x < imageData1.height; x++)
+    for (var x = 0; x < imageData1.width; x++)
     {
       var p1 = getPixel(imageData1.data,x, y);
       var p2 = getPixel(imageData2.data,x, y);
+      //console.log(p1);
+      //console.log(p2);
+      //console.log(pixelDiff(p1, p2))
       totalDiff += pixelDiff(p1, p2);
     }
   }
@@ -66,6 +80,16 @@ function imageDiff(imageData1, imageData2)
 
 function getRandomCoord(max){
     return Math.floor(Math.random() * max);
+}
+
+// copy-paste from stack-overflow
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }
 
 function randomDraw()
@@ -78,34 +102,38 @@ function randomDraw()
   y2 = getRandomCoord(imageHeight);
   y3 = getRandomCoord(imageHeight);
 
-  genContext.beginPath();
-  genContext.moveTo(x1, y1);
-  genContext.lineTo(x2, y2);
-  genContext.lineTo(x3, y3);
-  genContext.lineTo(x1, y1);
-  genContext.fill();
+  genCtx.beginPath();
+  genCtx.moveTo(x1, y1);
+  genCtx.lineTo(x2, y2);
+  genCtx.lineTo(x3, y3);
+  genCtx.lineTo(x1, y1);
+
+  genCtx.lineWidth = Math.floor(Math.random() * 4);
+  genCtx.strokeStyle = getRandomColor();
+  genCtx.stroke();
 }
 
 function generateOnce()
 {
-  modelImageData = modelContext.getImageData(0, 0, imageWidth, imageHeight);
   savedImage = genCanvas.toDataURL();
 
   randomDraw();
-  genImageData = genContext.getImageData(0, 0, imageWidth, imageHeight);
+  genImageData = genCtx.getImageData(0, 0, imageWidth, imageHeight);
 
   var diff = imageDiff(modelImageData, genImageData);
-  if (diff <= lessDiff)
+  if (lessDiff == undefined || diff <= lessDiff)
   {
     lessDiff = diff;
+    timeoutId = setTimeout(generateOnce, 0);
   }
   else
   {
     var image = new Image();
-    image = savedImage;
     image.onload = function() {
-      genContext.drawImage(image, 0, 0);
+      genCtx.drawImage(image, 0, 0);
+      timeoutId = setTimeout(generateOnce, 0);
     }
+    image.src = savedImage;
   }
 }
 
