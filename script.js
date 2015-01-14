@@ -1,4 +1,6 @@
-var imageLocation = './firefox.png';
+//var imageLocation = './firefox.png';
+var imageLocation = './trololo.png';
+
 var timeoutId;
 var timeoutDelay = 0;
 var timeoutLikenessDelay = 100;
@@ -19,6 +21,10 @@ var likeness;
 var lessDiff; 
 var maxDiffPossible;
 
+var maxLineWidth;
+var maxRadius;
+
+
 function initialize()
 {
   modelCanvas = document.getElementById('model-canvas');
@@ -35,6 +41,8 @@ function initialize()
     imageHeight = modelImage.height;
 
     maxDiffPossible = imageWidth * imageHeight * 3 * 256;
+    maxRadius = Math.max(imageWidth, imageHeight) / 2;
+    maxLineWidth = Math.max(imageWidth, imageHeight) / 13;
 
     modelCanvas.width = modelImage.width;
     modelCanvas.height = modelImage.height;
@@ -51,7 +59,6 @@ function initialize()
     play = true;
     setMainTimeout();
     
-
     setTimeout(displayLikeness, timeoutLikenessDelay);
 
     pausePlayButton.value = 'pause';
@@ -123,13 +130,39 @@ function getRandomCoord(max){
 function getRandomColor() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
-    for (var i = 0; i < 6; i++ ) {
+    for (var i = 0; i < 6; i++ )
+    {
         color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
 
-function randomDraw()
+function getRandomLineWidth()
+{
+  return Math.floor(Math.random() * maxLineWidth);
+}
+
+function stroke()
+{
+  genCtx.lineWidth = getRandomLineWidth();
+  genCtx.strokeStyle = getRandomColor();
+  genCtx.stroke();
+}
+
+function randomCircle()
+{
+  x = getRandomCoord(imageWidth);
+  y = getRandomCoord(imageHeight);
+
+  radius = Math.floor(Math.random() * maxRadius);
+
+  genCtx.beginPath();
+  genCtx.arc(x, y, radius, 0, Math.PI * 2);
+
+  stroke();
+}
+
+function randomTriangle()
 {
   x1 = getRandomCoord(imageWidth);
   x2 = getRandomCoord(imageWidth);
@@ -145,9 +178,19 @@ function randomDraw()
   genCtx.lineTo(x3, y3);
   genCtx.lineTo(x1, y1);
 
-  genCtx.lineWidth = Math.floor(Math.random() * 4);
-  genCtx.strokeStyle = getRandomColor();
-  genCtx.stroke();
+  stroke();
+}
+
+function randomDraw()
+{
+  if (Math.random() < 0.5)
+  {
+    randomCircle();
+  }
+  else
+  {
+    randomTriangle();
+  }
 }
 
 function generateOnce()
