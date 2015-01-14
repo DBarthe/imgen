@@ -1,5 +1,5 @@
 //var imageLocation = './firefox.png';
-var imageLocation = './trololo.png';
+var imageLocation = './the-scream.png';
 
 var timeoutId;
 var timeoutDelay = 0;
@@ -14,6 +14,7 @@ var imageWidth;
 var imageHeight;
 
 var pausePlayButton;
+var resetButton;
 var play;
 
 var likeness;
@@ -32,6 +33,7 @@ function initialize()
   modelCanvas = document.getElementById('model-canvas');
   genCanvas = document.getElementById('generate-canvas');
   pausePlayButton = document.getElementById('pause-play-button');
+  resetButton = document.getElementById('reset-button');
   likeness = document.getElementById('likeness');
 
   modelCtx = modelCanvas.getContext('2d');
@@ -39,14 +41,16 @@ function initialize()
 
   drawManager = new DrawManager();
 
+
+
   modelImage = new Image();
   modelImage.onload = function() {
     imageWidth = modelImage.width;
     imageHeight = modelImage.height;
 
     maxDiffPossible = imageWidth * imageHeight * 3 * 256;
-    maxRadius = Math.max(imageWidth, imageHeight) / 2;
-    maxLineWidth = Math.max(imageWidth, imageHeight) / 13;
+    maxRadius = (imageWidth + imageHeight) / 2 / 2;
+    maxLineWidth = (imageWidth + imageHeight) / 2 / 20;
 
     modelCanvas.width = modelImage.width;
     modelCanvas.height = modelImage.height;
@@ -66,7 +70,9 @@ function initialize()
     setTimeout(displayLikeness, timeoutLikenessDelay);
 
     pausePlayButton.value = 'pause';
-    pausePlayButton.addEventListener('click', buttonClick);
+    resetButton.value = 'reset';
+    pausePlayButton.addEventListener('click', playPause);
+    resetButton.addEventListener('click', reset);
 
   }
   modelImage.src = imageLocation;
@@ -79,6 +85,8 @@ function DrawManager()
   this.methods = [
     { name: 'circle', func: randomCircle },
     { name: 'triangle', func: randomTriangle },
+    { name: 'line', func: randomLine },
+
   ];
 
   for (var i = 0; i < this.methods.length; i++)
@@ -118,7 +126,7 @@ DrawManager.prototype.draw = function()
   }
 };
 
-function buttonClick()
+function playPause()
 {
   if (play == false)
   {
@@ -135,6 +143,14 @@ function buttonClick()
   }
 }
 
+function reset()
+{
+  lessDiff = undefined;
+  genCtx.beginPath();
+  genCtx.rect(0, 0, imageWidth, imageHeight);
+  genCtx.fillStyle = 'white';
+  genCtx.fill();
+}
 
 function getPixel(data, x, y)
 {
@@ -287,7 +303,8 @@ function generateOnce()
 
 function displayLikeness()
 {
-  var value = Math.round((1 - lessDiff / maxDiffPossible) * 100);
+  var value = (lessDiff == undefined ?
+    0 : Math.round((1 - lessDiff / maxDiffPossible) * 100));
   var text = "likeness : " + value + "%";
   likeness.firstChild.nodeValue = text;
   setTimeout(displayLikeness, timeoutLikenessDelay);
