@@ -24,6 +24,8 @@ var maxDiffPossible;
 var maxLineWidth;
 var maxRadius;
 
+var drawManager;
+
 
 function initialize()
 {
@@ -34,6 +36,8 @@ function initialize()
 
   modelCtx = modelCanvas.getContext('2d');
   genCtx = genCanvas.getContext('2d');
+
+  drawManager = new DrawManager();
 
   modelImage = new Image();
   modelImage.onload = function() {
@@ -67,6 +71,52 @@ function initialize()
   }
   modelImage.src = imageLocation;
 }
+
+function DrawManager()
+{
+  var that = this;
+
+  this.methods = [
+    { name: 'circle', func: randomCircle },
+    { name: 'triangle', func: randomTriangle },
+  ];
+
+  for (var i = 0; i < this.methods.length; i++)
+  {
+    var name = this.methods[i].name;
+    var elt = document.getElementById('enable-' + name)    
+    this.methods[i].element = elt;
+    elt.addEventListener('CheckboxStateChange', function() { that.updateFuncTable() });
+  }
+
+  this.funcTable = [];
+
+  this.updateFuncTable();
+}
+
+DrawManager.prototype.updateFuncTable = function()
+{
+  this.funcTable = []
+  for (var i = 0; i < this.methods.length; i++)
+  {
+    var method = this.methods[i]; 
+    if (method.element.checked)
+    {
+      this.funcTable.push(method.func);
+    }
+  }
+}
+
+DrawManager.prototype.draw = function()
+{
+  var length = this.funcTable.length;
+  if (length > 0)
+  {
+    var i = Math.floor(Math.random() * length)
+    var f = this.funcTable[i];
+    f();
+  }
+};
 
 function buttonClick()
 {
@@ -149,6 +199,21 @@ function stroke()
   genCtx.stroke();
 }
 
+function randomLine()
+{
+  x1 = getRandomCoord(imageWidth);
+  x2 = getRandomCoord(imageWidth);
+
+  y1 = getRandomCoord(imageHeight);
+  y2 = getRandomCoord(imageHeight);
+
+  genCtx.beginPath();
+  genCtx.moveTo(x1, y1);
+  genCtx.lineTo(x2, y2);
+
+  stroke();
+}
+
 function randomCircle()
 {
   x = getRandomCoord(imageWidth);
@@ -200,7 +265,7 @@ function generateOnce()
 
   savedImage = genCanvas.toDataURL();
 
-  randomDraw();
+  drawManager.draw();
   genImageData = genCtx.getImageData(0, 0, imageWidth, imageHeight);
 
   var diff = imageDiff(modelImageData, genImageData);
