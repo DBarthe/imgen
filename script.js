@@ -94,6 +94,7 @@ function DrawManager()
     var name = this.methods[i].name;
     var elt = document.getElementById('enable-' + name)    
     this.methods[i].element = elt;
+    elt.checked = true;
     elt.addEventListener('CheckboxStateChange', function() { that.updateFuncTable() });
   }
 
