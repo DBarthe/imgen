@@ -86,7 +86,7 @@ function DrawManager()
     { name: 'circle', func: randomCircle },
     { name: 'triangle', func: randomTriangle },
     { name: 'line', func: randomLine },
-
+    { name: 'square', func: randomSquare },
   ];
 
   for (var i = 0; i < this.methods.length; i++)
@@ -214,6 +214,22 @@ function stroke()
   genCtx.lineWidth = getRandomLineWidth();
   genCtx.strokeStyle = getRandomColor();
   genCtx.stroke();
+}
+
+function randomSquare()
+{
+  x1 = getRandomCoord(imageWidth);
+  x2 = getRandomCoord(imageWidth);
+
+  y1 = getRandomCoord(imageHeight);
+  y2 = getRandomCoord(imageHeight);
+
+  genCtx.beginPath();
+  genCtx.rect(Math.min(x1, x2), Math.min(y1, y2),
+              Math.abs(x1 - x2), Math.abs(y1 - y2));
+
+  stroke();
+
 }
 
 function randomLine()
