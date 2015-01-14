@@ -1,5 +1,7 @@
-
+var imageLocation = './firefox.png';
 var timeoutId;
+var timeoutDelay = 0;
+var timeoutLikenessDelay = 100;
 
 var modelCanvas, genCanvas;
 var modelCtx, genCtx;
@@ -9,12 +11,20 @@ var modelImageData;
 var imageWidth;
 var imageHeight;
 
+var pausePlayButton;
+var play;
+
+var likeness;
+
 var lessDiff; 
+var maxDiffPossible;
 
 function initialize()
 {
   modelCanvas = document.getElementById('model-canvas');
   genCanvas = document.getElementById('generate-canvas');
+  pausePlayButton = document.getElementById('pause-play-button');
+  likeness = document.getElementById('likeness');
 
   modelCtx = modelCanvas.getContext('2d');
   genCtx = genCanvas.getContext('2d');
@@ -23,6 +33,8 @@ function initialize()
   modelImage.onload = function() {
     imageWidth = modelImage.width;
     imageHeight = modelImage.height;
+
+    maxDiffPossible = imageWidth * imageHeight * 3 * 256;
 
     modelCanvas.width = modelImage.width;
     modelCanvas.height = modelImage.height;
@@ -36,11 +48,36 @@ function initialize()
     genCtx.fillStyle = 'white';
     genCtx.fill();
 
-    timeoutId = setTimeout(generateOnce, 0);
-  }
-  modelImage.src = './firefox.png';
+    play = true;
+    setMainTimeout();
+    
 
+    setTimeout(displayLikeness, timeoutLikenessDelay);
+
+    pausePlayButton.value = 'pause';
+    pausePlayButton.addEventListener('click', buttonClick);
+
+  }
+  modelImage.src = imageLocation;
 }
+
+function buttonClick()
+{
+  if (play == false)
+  {
+    pausePlayButton.value = 'pause';
+    play = true;
+    setMainTimeout();
+  }
+  else
+  {
+    play = false;
+    pausePlayButton.value = 'play';
+    clearTimeout(timeoutId);
+    timeoutId = undefined;
+  }
+}
+
 
 function getPixel(data, x, y)
 {
@@ -115,6 +152,9 @@ function randomDraw()
 
 function generateOnce()
 {
+  if (play == false)
+    return ;
+
   savedImage = genCanvas.toDataURL();
 
   randomDraw();
@@ -124,17 +164,30 @@ function generateOnce()
   if (lessDiff == undefined || diff <= lessDiff)
   {
     lessDiff = diff;
-    timeoutId = setTimeout(generateOnce, 0);
+    setMainTimeout();
   }
   else
   {
     var image = new Image();
     image.onload = function() {
       genCtx.drawImage(image, 0, 0);
-      timeoutId = setTimeout(generateOnce, 0);
+      setMainTimeout();
     }
     image.src = savedImage;
   }
+}
+
+function displayLikeness()
+{
+  var value = Math.round((1 - lessDiff / maxDiffPossible) * 100);
+  var text = "likeness : " + value + "%";
+  likeness.firstChild.nodeValue = text;
+  setTimeout(displayLikeness, timeoutLikenessDelay);
+}
+
+function setMainTimeout()
+{
+  timeoutId = setTimeout(generateOnce, timeoutDelay);
 }
 
 window.onload = initialize;
