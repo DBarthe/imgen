@@ -1,5 +1,5 @@
-//var imageLocation = './firefox.png';
-var imageLocation = './the-scream.png';
+var imageLocation = './firefox.png';
+//var imageLocation = './the-scream.png';
 
 var timeoutId;
 var timeoutDelay = 0;
@@ -17,7 +17,9 @@ var pausePlayButton;
 var resetButton;
 var play;
 
-var likeness;
+var likenessElem;
+var counterElem;
+var modifCounter = 0;
 
 var lessDiff; 
 var maxDiffPossible;
@@ -34,7 +36,9 @@ function initialize()
   genCanvas = document.getElementById('generate-canvas');
   pausePlayButton = document.getElementById('pause-play-button');
   resetButton = document.getElementById('reset-button');
-  likeness = document.getElementById('likeness');
+  likenessElem = document.getElementById('likeness');
+  counterElem = document.getElementById('counter');
+
 
   modelCtx = modelCanvas.getContext('2d');
   genCtx = genCanvas.getContext('2d');
@@ -65,7 +69,7 @@ function initialize()
     play = true;
     setMainTimeout();
     
-    setTimeout(displayLikeness, timeoutLikenessDelay);
+    setTimeout(displayStats, timeoutLikenessDelay);
 
     pausePlayButton.value = 'pause';
     resetButton.value = 'reset';
@@ -145,6 +149,8 @@ function playPause()
 function reset()
 {
   lessDiff = undefined;
+  modifCounter = 0;
+
   genCtx.beginPath();
   genCtx.rect(0, 0, imageWidth, imageHeight);
   genCtx.fillStyle = 'white';
@@ -310,6 +316,7 @@ function generateOnce()
   var diff = imageDiff(modelImageData, genImageData);
   if (lessDiff == undefined || diff <= lessDiff)
   {
+    modifCounter++;
     lessDiff = diff;
     setMainTimeout();
   }
@@ -329,8 +336,20 @@ function displayLikeness()
   var value = (lessDiff == undefined ?
     0 : Math.round((1 - lessDiff / maxDiffPossible) * 100));
   var text = "likeness : " + value + "%";
-  likeness.firstChild.nodeValue = text;
-  setTimeout(displayLikeness, timeoutLikenessDelay);
+  likenessElem.firstChild.nodeValue = text;
+}
+
+function displayCounter()
+{
+  var text = "counter : " + modifCounter;
+  counterElem.firstChild.nodeValue = text;
+}
+
+function displayStats()
+{
+  displayLikeness();
+  displayCounter();
+  setTimeout(displayStats, timeoutLikenessDelay);
 }
 
 function setMainTimeout()
