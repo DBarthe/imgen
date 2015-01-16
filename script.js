@@ -41,8 +41,6 @@ function initialize()
 
   drawManager = new DrawManager();
 
-
-
   modelImage = new Image();
   modelImage.onload = function() {
     imageWidth = modelImage.width;
@@ -86,7 +84,7 @@ function DrawManager()
     { name: 'circle', func: randomCircle },
     { name: 'triangle', func: randomTriangle },
     { name: 'line', func: randomLine },
-    { name: 'square', func: randomSquare },
+    { name: 'rectangle', func: randomRectangle },
   ];
 
   for (var i = 0; i < this.methods.length; i++)
@@ -211,12 +209,32 @@ function getRandomLineWidth()
 
 function stroke()
 {
+  var color = getRandomColor();
   genCtx.lineWidth = getRandomLineWidth();
-  genCtx.strokeStyle = getRandomColor();
+  genCtx.strokeStyle = color;
   genCtx.stroke();
 }
 
-function randomSquare()
+function fill()
+{
+  var color = getRandomColor();
+  genCtx.fillStyle = color;
+  genCtx.fill();
+}
+
+function fillOrStroke()
+{
+  if (Math.random() < 0.5)
+  {
+    fill();
+  }
+  else
+  {
+    stroke();
+  }
+}
+
+function randomRectangle()
 {
   x1 = getRandomCoord(imageWidth);
   x2 = getRandomCoord(imageWidth);
@@ -228,7 +246,7 @@ function randomSquare()
   genCtx.rect(Math.min(x1, x2), Math.min(y1, y2),
               Math.abs(x1 - x2), Math.abs(y1 - y2));
 
-  stroke();
+  fillOrStroke();
 
 }
 
@@ -257,7 +275,7 @@ function randomCircle()
   genCtx.beginPath();
   genCtx.arc(x, y, radius, 0, Math.PI * 2);
 
-  stroke();
+  fillOrStroke();
 }
 
 function randomTriangle()
@@ -276,19 +294,7 @@ function randomTriangle()
   genCtx.lineTo(x3, y3);
   genCtx.lineTo(x1, y1);
 
-  stroke();
-}
-
-function randomDraw()
-{
-  if (Math.random() < 0.5)
-  {
-    randomCircle();
-  }
-  else
-  {
-    randomTriangle();
-  }
+  fillOrStroke();
 }
 
 function generateOnce()
