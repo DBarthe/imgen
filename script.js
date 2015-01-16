@@ -1,5 +1,4 @@
-var imageLocation = './pink_floyd.png';
-//var imageLocation = './the-scream.png';
+var imageLocation = './firefox.png';
 
 var timeoutId;
 var timeoutDelay = 0;
